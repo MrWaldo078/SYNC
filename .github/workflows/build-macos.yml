@@ -41,8 +41,10 @@ jobs:
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
      
 
-      - name: Upload macOS ZIP
-        uses: actions/upload-artifact@v2
-        with:
-          name: macos-app
-          path: dist/PolarGarminSyncSplit.zip
+      - name: Dump ZIP as Base64
+        run: |
+          cd dist
+          # encode, print a marker before/after so it’s easy to grab
+          echo '-----BEGIN ZIP BASE64-----'
+          base64 PolarGarminSyncSplit.zip
+          echo '-----END ZIP BASE64-----'
