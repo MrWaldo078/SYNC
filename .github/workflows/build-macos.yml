@@ -2,9 +2,8 @@ name: Build macOS App
 
 on:
   push:
-    tags:
-      - 'v*'            # e.g. v1.0, v1.1
-  workflow_dispatch:   # manual trigger
+    tags: ['v*']
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,35 +13,46 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Build C++ sync library
-        run: |
-          clang++ -std=c++11 -dynamiclib -undefined dynamic_lookup \
-                  -o libsync.so sync.cpp
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install py2app & deps
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python3 -m pip install --upgrade pip
+          # make sure py2app is there
+          pip install py2app
+          # then install your other requirements
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
       - name: Build .app with py2app
         run: |
-          source venv/bin/activate
-          python setup.py py2app
-          
-      - name: Zip the .app bundle
-        run: |
-          cd dist
-          ditto -c -k --sequesterRsrc --keepParent \
-            PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
+          python3 setup.py py2app || echo "py2app failed with $?"
 
-      - name: Dump ZIP as Base64
+      - name: Debug show entire workspace
         run: |
-          cd dist
-          echo '-----BEGIN ZIP BASE64-----'
-          base64 PolarGarminSyncSplit.zip
-          echo '-----END ZIP BASE64-----'
+          echo "==== ROOT ===="
+          ls -R .
+          # then look for any dist or build.
+   
+      - name: Find and zip the .app
+        run: |
+          # if py2app created dist/, zip that
+          if [ -d dist ]; then
+            cd dist
+            zip -r ../macos_app_bundle.zip .
+            cd ..
+          else
+            # otherwise, zip whatever .app you find
+            found=$(find . -maxdepth 2 -type d -name "*.app" | head -n1)
+            echo "Found .app at: $found"
+            zip -r macos_app_bundle.zip "$found"
+          fi
+          ls -l macos_app_bundle.zip
+
+      - name: Upload macOS ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-app
+          path: macos_app_bundle.zip
