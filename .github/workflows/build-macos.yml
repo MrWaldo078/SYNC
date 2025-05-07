@@ -41,9 +41,11 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent \
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
-
-      - name: Upload artifact
+          
+      - name: Upload macOS ZIP
         uses: actions/upload-artifact@v3
         with:
-          name: macos-app
-          path: PolarGarminSyncSplit.zip
+           name: macos-app
+           path: PolarGarminSyncSplit.zip
+
+
