@@ -1,8 +1,5 @@
 name: Build macOS App
 
-permissions:
-  contents: write
-
 on:
   push:
     tags:
@@ -12,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -46,19 +42,8 @@ jobs:
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/create-release@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload ZIP to Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: PolarGarminSyncSplit.zip
+          name: macos-app
+          path: PolarGarminSyncSplit.zip
