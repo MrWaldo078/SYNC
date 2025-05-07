@@ -1,0 +1,10 @@
+# Core FIT parsing & writing libraries
+fitparse
+fitdecode
+fit-tool
+
+# Numerical arrays for the sync routine
+numpy
+
+# macOS bundling
+py2app

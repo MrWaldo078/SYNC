@@ -1,0 +1,3 @@
+LIBRARY sync
+EXPORTS
+    sync_rr_to_fit
