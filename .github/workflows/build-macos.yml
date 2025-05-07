@@ -2,8 +2,9 @@ name: Build macOS App
 
 on:
   push:
-    tags: ['v*']
-  workflow_dispatch:
+    tags:
+      - 'v*'            # e.g. v1.0, v1.1
+  workflow_dispatch:   # manual trigger
 
 jobs:
   build:
@@ -13,49 +14,34 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Build C++ sync library
+        run: |
+          clang++ -std=c++11 -dynamiclib -undefined dynamic_lookup \
+                  -o libsync.so sync.cpp
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install py2app & deps
+      - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          # make sure py2app is there
-          pip install py2app
-          # then install your other requirements
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
       - name: Build .app with py2app
         run: |
-          python3 setup.py py2app || echo "py2app failed with $?"
-
-      - name: Debug show entire workspace
+          source venv/bin/activate
+          python setup.py py2app
+      - name: Zip the .app bundle
         run: |
-          echo "==== ROOT ===="
-          ls -R .
-          # then look for any dist or build.
-   
-      - name: Find and zip the .app
-        run: |
-          # if py2app created dist/, zip that
-          if [ -d dist ]; then
-            cd dist
-            zip -r ../macos_app_bundle.zip .
-            cd ..
-          else
-            # otherwise, zip whatever .app you find
-            found=$(find . -maxdepth 2 -type d -name "*.app" | head -n1)
-            echo "Found .app at: $found"
-            zip -r macos_app_bundle.zip "$found"
-          fi
-          ls -l macos_app_bundle.zip
-
-          steps:
-      - run: mkdir -p path/to/artifact
-      - run: echo hello > path/to/artifact/macos_app_bundle.zip
-      - uses: actions/upload-artifact@v4
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent \
+            PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
+          mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
+          
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
-          path: path/to/artifact/macos_app_bundle.zip
-
+          name: macos-app
+          path: PolarGarminSyncSplit.zip
