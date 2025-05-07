@@ -3,12 +3,13 @@ name: Build macOS App
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*'            # e.g. v1.0, v1.1
+  workflow_dispatch:   # manual trigger
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -17,7 +18,6 @@ jobs:
         run: |
           clang++ -std=c++11 -dynamiclib -undefined dynamic_lookup \
                   -o libsync.so sync.cpp
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -28,24 +28,22 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install --disable-pip-version-check --quiet -r requirements.txt
-
+          pip install -r requirements.txt
       - name: Build .app with py2app
         run: |
           source venv/bin/activate
           python setup.py py2app
-
       - name: Zip the .app bundle
         run: |
           cd dist
           ditto -c -k --sequesterRsrc --keepParent \
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
+     
 
-      - name: Upload macOS ZIP
-        uses: actions/upload-artifact@v2
+      - name: Upload ZIP to Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: macos-app
-          path: PolarGarminSyncSplit.zip
-
-
+          files: PolarGarminSyncSplit.zi
