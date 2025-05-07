@@ -39,11 +39,10 @@ jobs:
           cd dist
           ditto -c -k --sequesterRsrc --keepParent \
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
-          mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
 
       - name: Dump ZIP as Base64
         run: |
+          cd dist
           echo '-----BEGIN ZIP BASE64-----'
           base64 PolarGarminSyncSplit.zip
           echo '-----END ZIP BASE64-----'
-
