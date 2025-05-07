@@ -33,18 +33,17 @@ jobs:
         run: |
           source venv/bin/activate
           python setup.py py2app
+          
       - name: Zip the .app bundle
         run: |
           cd dist
           ditto -c -k --sequesterRsrc --keepParent \
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
-     
 
       - name: Dump ZIP as Base64
         run: |
-          cd dist
-          # encode, print a marker before/after so it’s easy to grab
           echo '-----BEGIN ZIP BASE64-----'
           base64 PolarGarminSyncSplit.zip
           echo '-----END ZIP BASE64-----'
+
