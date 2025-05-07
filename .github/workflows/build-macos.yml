@@ -42,10 +42,17 @@ jobs:
             PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
           mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
           
+      - name: Zip the .app bundle
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent \
+            PolarGarminSyncSplit.app PolarGarminSyncSplit.zip
+          mv PolarGarminSyncSplit.zip $GITHUB_WORKSPACE
+
       - name: Upload macOS ZIP
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
-           name: macos-app
-           path: PolarGarminSyncSplit.zip
+          name: macos-app
+          path: PolarGarminSyncSplit.zip
 
 
